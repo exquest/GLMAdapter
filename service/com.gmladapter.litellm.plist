@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- GMLAdapter launchd template — installed by install-service.sh, which fills
+     in __REPO_DIR__ and __LITELLM_DIR__. Don't load this file directly. -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.gmladapter.litellm</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>__REPO_DIR__/run.sh</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- launchd runs with a bare PATH; make sure litellm resolves -->
+        <key>PATH</key>
+        <string>__LITELLM_DIR__:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>__REPO_DIR__/proxy.log</string>
+    <key>StandardErrorPath</key>
+    <string>__REPO_DIR__/proxy.log</string>
+</dict>
+</plist>

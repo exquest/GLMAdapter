@@ -1,0 +1,18 @@
+# GMLAdapter — LiteLLM proxy config for GLM-5.2 (Together AI, FP8).
+# The key is NEVER inlined: api_key uses os.environ/ indirection; run.sh
+# resolves the value from your OS secret store (or .env) at launch.
+model_list:
+  - model_name: glm-5.2                       # name clients request
+    litellm_params:
+      model: together_ai/zai-org/GLM-5.2      # together_ai/ prefix => Together AI (FP8)
+      api_key: os.environ/TOGETHER_API_KEY    # env indirection — never the raw key
+      # GLM-5.2 is a reasoning model: it spends completion tokens on
+      # reasoning_content BEFORE the answer. Give it room or short replies
+      # come back with empty content.
+      max_tokens: 4096
+
+litellm_settings:
+  drop_params: true                           # tolerate client params the model ignores
+
+# No master_key set => the proxy accepts any bearer token. Fine for localhost-only
+# dev. To lock it down, set: general_settings.master_key: os.environ/LITELLM_MASTER_KEY

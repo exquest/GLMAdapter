@@ -1,0 +1,19 @@
+# GMLAdapter systemd user unit template — installed by install-service.sh,
+# which fills in __REPO_DIR__ and __LITELLM_DIR__. Don't enable this file directly.
+#
+# Note: a systemd *user* unit runs in your user session, so `secret-tool`
+# (libsecret/GNOME Keyring) works if your session unlocks the keyring at login.
+# Headless boxes should use the .env fallback instead.
+[Unit]
+Description=GMLAdapter — LiteLLM proxy serving GLM-5.2 (Together AI)
+After=network-online.target
+
+[Service]
+Type=exec
+ExecStart=/bin/bash __REPO_DIR__/run.sh
+Environment=PATH=__LITELLM_DIR__:/usr/local/bin:/usr/bin:/bin
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

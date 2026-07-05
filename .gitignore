@@ -1,0 +1,7 @@
+# Never commit secrets or logs. The Together key belongs in your OS secret
+# store (macOS Keychain / libsecret) — or, at worst, an untracked .env.
+.env
+*.env
+!.env.example
+*.log
+__pycache__/
