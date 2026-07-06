@@ -1,31 +1,31 @@
-# GMLAdapter shell helpers — works in zsh and bash. Source from your rc file:
-#   source /path/to/GMLAdapter/shell/glm.sh
+# GLMAdapter shell helpers — works in zsh and bash. Source from your rc file:
+#   source /path/to/GLMAdapter/shell/glm.sh
 #
 #   glm         Claude Code running on GLM-5.2 through the local proxy
 #   glm-health  one-shot health check of the whole stack
 #
-# Port defaults to 4000; export GML_PORT to match a custom run.sh port.
+# Port defaults to 4000; export GLM_PORT to match a custom run.sh port.
 
 glm() {
-  ANTHROPIC_BASE_URL="http://localhost:${GML_PORT:-4000}" \
+  ANTHROPIC_BASE_URL="http://localhost:${GLM_PORT:-4000}" \
   ANTHROPIC_API_KEY="sk-anything" \
   claude --model glm-5.2 "$@"
 }
 
 glm-health() {
-  local port="${GML_PORT:-4000}" ok=0 fail=0
+  local port="${GLM_PORT:-4000}" ok=0 fail=0
   local g=$'\033[32m' r=$'\033[31m' y=$'\033[33m' n=$'\033[0m'
-  echo "GMLAdapter / GLM-5.2 health (port ${port}):"
+  echo "GLMAdapter / GLM-5.2 health (port ${port}):"
 
   # 1. service (best-effort; skipped if you run the proxy manually)
   case "$(uname -s)" in
     Darwin)
-      if launchctl list 2>/dev/null | grep -q com.gmladapter.litellm; then
-        echo "  ${g}v${n} launchd agent com.gmladapter.litellm running"; ok=$((ok+1))
+      if launchctl list 2>/dev/null | grep -q com.glmadapter.litellm; then
+        echo "  ${g}v${n} launchd agent com.glmadapter.litellm running"; ok=$((ok+1))
       else echo "  ${y}-${n} launchd agent not loaded (fine if running ./run.sh manually)"; fi ;;
     Linux)
-      if systemctl --user is-active --quiet gmladapter-litellm 2>/dev/null; then
-        echo "  ${g}v${n} systemd unit gmladapter-litellm active"; ok=$((ok+1))
+      if systemctl --user is-active --quiet glmadapter-litellm 2>/dev/null; then
+        echo "  ${g}v${n} systemd unit glmadapter-litellm active"; ok=$((ok+1))
       else echo "  ${y}-${n} systemd unit not active (fine if running ./run.sh manually)"; fi ;;
   esac
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# GMLAdapter — start the LiteLLM proxy serving GLM-5.2.
+# GLMAdapter — start the LiteLLM proxy serving GLM-5.2.
 #
 # The Together key is resolved into the process env at launch, in order:
 #   1. TOGETHER_API_KEY already exported in the environment
@@ -8,7 +8,7 @@
 #   4. .env file next to this script (gitignored — never commit it)
 # Prefer 2/3: the key never touches disk. Stop with Ctrl-C.
 #
-# Port: 4000 by default; override with GML_PORT=4123 ./run.sh
+# Port: 4000 by default; override with GLM_PORT=4123 ./run.sh
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -17,7 +17,7 @@ command -v litellm >/dev/null 2>&1 || {
   exit 1
 }
 
-PORT="${GML_PORT:-4000}"
+PORT="${GLM_PORT:-4000}"
 
 if [ -z "${TOGETHER_API_KEY:-}" ]; then
   case "$(uname -s)" in

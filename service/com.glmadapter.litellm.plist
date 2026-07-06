@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- GMLAdapter launchd template — installed by install-service.sh, which fills
+<!-- GLMAdapter launchd template — installed by install-service.sh, which fills
      in __REPO_DIR__ and __LITELLM_DIR__. Don't load this file directly. -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.gmladapter.litellm</string>
+    <string>com.glmadapter.litellm</string>
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>

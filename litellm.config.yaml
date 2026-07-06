@@ -1,4 +1,4 @@
-# GMLAdapter — LiteLLM proxy config for GLM-5.2 (Together AI, FP8).
+# GLMAdapter — LiteLLM proxy config for GLM-5.2 (Together AI, FP8).
 # The key is NEVER inlined: api_key uses os.environ/ indirection; run.sh
 # resolves the value from your OS secret store (or .env) at launch.
 model_list:

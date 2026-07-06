@@ -1,4 +1,4 @@
-# GMLAdapter
+# GLMAdapter
 
 Run **GLM-5.2** (Z.AI's 744B reasoning model, served by **Together AI** at FP8)
 behind a local [LiteLLM](https://docs.litellm.ai/) proxy — so **any
@@ -32,7 +32,7 @@ Battle-tested facts baked into this setup:
 ## Quickstart
 
 ```bash
-git clone https://github.com/exquest/GMLAdapter.git && cd GMLAdapter
+git clone https://github.com/exquest/GLMAdapter.git && cd GLMAdapter
 
 # 1. Store your Together key in the OS secret store (preferred — never on disk)
 #    macOS:
@@ -42,7 +42,7 @@ echo -n 'YOUR_KEY' | secret-tool store --label='Together AI' service TOGETHER_AP
 #    Fallback (headless boxes): cp .env.example .env  # then edit — .env is gitignored
 
 # 2. Start the proxy
-./run.sh                      # serves http://localhost:4000  (GML_PORT=4123 ./run.sh to change)
+./run.sh                      # serves http://localhost:4000  (GLM_PORT=4123 ./run.sh to change)
 
 # 3. Test it
 curl -s http://localhost:4000/v1/chat/completions \
@@ -82,11 +82,11 @@ working as intended.)
 ./install-service.sh
 ```
 
-- **macOS** → launchd LaunchAgent `com.gmladapter.litellm` (starts at login,
+- **macOS** → launchd LaunchAgent `com.glmadapter.litellm` (starts at login,
   self-heals via KeepAlive, logs to `proxy.log`). Runs in your GUI session, so
   it can read the Keychain.
-- **Linux** → systemd user unit `gmladapter-litellm` (`Restart=always`,
-  logs via `journalctl --user -u gmladapter-litellm`). Uses libsecret if your
+- **Linux** → systemd user unit `glmadapter-litellm` (`Restart=always`,
+  logs via `journalctl --user -u glmadapter-litellm`). Uses libsecret if your
   login unlocks the keyring; otherwise use the `.env` fallback.
 
 Re-run the script any time — it re-renders and restarts.
@@ -98,11 +98,11 @@ Nothing on disk depends on the key's value, so rotation is two commands:
 ```bash
 # macOS
 security add-generic-password -U -s TOGETHER_API_KEY -a "$USER" -w 'NEW_KEY'
-launchctl kickstart -k gui/$(id -u)/com.gmladapter.litellm
+launchctl kickstart -k gui/$(id -u)/com.glmadapter.litellm
 
 # Linux
 echo -n 'NEW_KEY' | secret-tool store --label='Together AI' service TOGETHER_API_KEY
-systemctl --user restart gmladapter-litellm
+systemctl --user restart glmadapter-litellm
 ```
 
 ## Security notes
@@ -124,7 +124,7 @@ systemctl --user restart gmladapter-litellm
 | Reply has empty `content` | Reasoning model ate the budget — raise `max_tokens` (config default 4096 is safe) |
 | `litellm: command not found` under the service | The installer bakes your litellm path into the service; re-run `./install-service.sh` after moving Python envs |
 | `TOGETHER_API_KEY not found` | Store the key (see Quickstart step 1); on Linux, `secret-tool` needs an unlocked keyring |
-| Port 4000 busy | `GML_PORT=4123 ./run.sh` and `export GML_PORT=4123` before using `glm`/`glm-health` |
+| Port 4000 busy | `GLM_PORT=4123 ./run.sh` and `export GLM_PORT=4123` before using `glm`/`glm-health` |
 | Claude Code errors mid-tool-use | Make sure the model is Together (`together_ai/…`) — DeepInfra FP4 breaks the OpenAI→Anthropic translation |
 
 ## License
