@@ -1,25 +1,27 @@
 # GLMAdapter
 
-Run **GLM-5.2** (Z.AI's 744B reasoning model, served by **Together AI** at FP8)
-behind a local [LiteLLM](https://docs.litellm.ai/) proxy — so **any
-OpenAI-compatible client** *and* **Claude Code** can use it, with your Together
-key kept in the OS secret store and never written to disk.
+Run **Together AI models** — **GLM-5.2** (Z.AI's 744B reasoning model, FP8) and
+**Kimi-K3** (Moonshot AI, 1M context) — behind one local
+[LiteLLM](https://docs.litellm.ai/) proxy, so **any OpenAI-compatible client**
+*and* **Claude Code** can use them, with your Together key kept in the OS
+secret store and never written to disk. One proxy, one key, N models: clients
+pick by model name (`glm-5.2`, `kimi-k3`).
 
 ```
 OpenAI clients (codex, aider, scripts) ──► http://localhost:4000/v1  ─┐
-                                                                      ├─► LiteLLM ─► Together AI (GLM-5.2, FP8)
-Claude Code (`glm` command)            ──► Anthropic-format ─────────┘
+                                                                      ├─► LiteLLM ─► Together AI (glm-5.2 · kimi-k3)
+Claude Code (`glm` / `kimi` commands)  ──► Anthropic-format ─────────┘
 ```
 
 Battle-tested facts baked into this setup:
 
 | Fact | Value |
 |---|---|
-| Model | `zai-org/GLM-5.2` on Together AI (FP8 — best available serverless precision) |
-| Context / max output | 256K / 131,072 tokens |
-| Pricing | $1.40 per 1M input ($0.26 cached) · $4.40 per 1M output |
-| Reasoning model | Spends completion tokens on reasoning **before** the answer — small `max_tokens` returns *empty* content. Config defaults to 4096. |
-| Claude Code compat | Text ✅ and agentic tool-use ✅ through LiteLLM's OpenAI→Anthropic translation (verified; note: the same translation *crashes* on DeepInfra FP4 — stick with Together) |
+| Models | `zai-org/GLM-5.2` (FP8 — best available serverless precision) · `moonshotai/Kimi-K3` |
+| Context / max output | GLM-5.2: 256K / 131,072 tokens · Kimi-K3: 1M context (Together catalog) |
+| Pricing (per 1M) | GLM-5.2: $1.40 in ($0.26 cached) / $4.40 out · Kimi-K3: $3 in ($0.30 cached) / $15 out (Together catalog, 2026-08-08) |
+| Reasoning models | Spend completion tokens on reasoning **before** the answer — small `max_tokens` returns *empty* content. Config defaults to 4096 for both. |
+| Claude Code compat | Text ✅ and agentic tool-use ✅ through LiteLLM's OpenAI→Anthropic translation (verified on GLM-5.2; note: the same translation *crashes* on DeepInfra FP4 — stick with Together) |
 | Anthropic endpoint | Together has **none** (`/v1/messages` → 404). The proxy provides it. |
 
 ## Prerequisites

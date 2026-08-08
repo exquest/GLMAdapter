@@ -1,4 +1,5 @@
-# GLMAdapter — LiteLLM proxy config for GLM-5.2 (Together AI, FP8).
+# GLMAdapter — LiteLLM proxy config for Together AI models (GLM-5.2, Kimi-K3).
+# One proxy, one key, N models: clients pick by model name.
 # The key is NEVER inlined: api_key uses os.environ/ indirection; run.sh
 # resolves the value from your OS secret store (or .env) at launch.
 model_list:
@@ -9,6 +10,13 @@ model_list:
       # GLM-5.2 is a reasoning model: it spends completion tokens on
       # reasoning_content BEFORE the answer. Give it room or short replies
       # come back with empty content.
+      max_tokens: 4096
+
+  - model_name: kimi-k3                       # name clients request
+    litellm_params:
+      model: together_ai/moonshotai/Kimi-K3   # 1M context (Together catalog)
+      api_key: os.environ/TOGETHER_API_KEY    # same Together account as glm-5.2
+      # Same empty-content guard as glm-5.2: room for reasoning tokens.
       max_tokens: 4096
 
 litellm_settings:
