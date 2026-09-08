@@ -1,15 +1,18 @@
 # GLMAdapter
 
-Run **Together AI models** — **GLM-5.2** (Z.AI's 744B reasoning model, FP8) and
-**Kimi-K3** (Moonshot AI, 1M context) — behind one local
+Run **Together AI models** — **GLM-5.2** (Z.AI's 744B reasoning model, FP8),
+**GLM-5.3** (Z.AI's current flagship, 1M context, same price as GLM-5.2),
+**GLM-5.3-Flash** (Z.AI's 320B-A18B multimodal reasoning model, 1M context, ~1/10th
+GLM-5.2's price), **DeepSeek-V4-Pro-0813** (DeepSeek, 1M context) and **Kimi-K3**
+(Moonshot AI, 1M context) — behind one local
 [LiteLLM](https://docs.litellm.ai/) proxy, so **any OpenAI-compatible client**
 *and* **Claude Code** can use them, with your Together key kept in the OS
 secret store and never written to disk. One proxy, one key, N models: clients
-pick by model name (`glm-5.2`, `kimi-k3`).
+pick by model name (`glm-5.2`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4-pro`, `kimi-k3`).
 
 ```
 OpenAI clients (codex, aider, scripts) ──► http://localhost:4000/v1  ─┐
-                                                                      ├─► LiteLLM ─► Together AI (glm-5.2 · kimi-k3)
+                                                                      ├─► LiteLLM ─► Together AI (glm-5.2 · glm-5.3 · glm-5.3-flash · deepseek-v4-pro · kimi-k3)
 Claude Code (`glm` / `kimi` commands)  ──► Anthropic-format ─────────┘
 ```
 
@@ -17,10 +20,10 @@ Battle-tested facts baked into this setup:
 
 | Fact | Value |
 |---|---|
-| Models | `zai-org/GLM-5.2` (FP8 — best available serverless precision) · `moonshotai/Kimi-K3` |
-| Context / max output | GLM-5.2: 256K / 131,072 tokens · Kimi-K3: 1M context (Together catalog) |
-| Pricing (per 1M) | GLM-5.2: $1.40 in ($0.26 cached) / $4.40 out · Kimi-K3: $3 in ($0.30 cached) / $15 out (Together catalog, 2026-08-08) |
-| Reasoning models | Spend completion tokens on reasoning **before** the answer — small `max_tokens` returns *empty* content. Config defaults to 4096 for both. |
+| Models | `zai-org/GLM-5.2` (FP8 — best available serverless precision) · `zai-org/GLM-5.3` · `zai-org/GLM-5.3-Flash` · `deepseek-ai/DeepSeek-V4-Pro-0813` (the 0813 build; the un-suffixed `DeepSeek-V4-Pro` is a different 512K listing) · `moonshotai/Kimi-K3` |
+| Context / max output | GLM-5.2: 256K / 131,072 tokens · GLM-5.3: 1M context · GLM-5.3-Flash: 1M context · DeepSeek-V4-Pro-0813: 1M context · Kimi-K3: 1M context (Together catalog) |
+| Pricing (per 1M) | GLM-5.2: $1.40 in ($0.26 cached) / $4.40 out · GLM-5.3: $1.40 in / $4.40 out · GLM-5.3-Flash: $0.15 in ($0.03 cached) / $0.50 out · DeepSeek-V4-Pro-0813: $1.32 in / $3.96 out · Kimi-K3: $3 in ($0.30 cached) / $15 out (Together catalog, 2026-09-08) |
+| Reasoning models | Spend completion tokens on reasoning **before** the answer — small `max_tokens` returns *empty* content. Config defaults: 4096 (GLM-5.2), 16384 (GLM-5.3, GLM-5.3-Flash, DeepSeek-V4-Pro-0813), 32768 (Kimi-K3). GLM-5.3 and GLM-5.3-Flash honour `reasoning_effort: low\|high\|max` (default max; verified to suppress reasoning at `low`) — allowed through via `allowed_openai_params`. DeepSeek-V4-Pro-0813 *accepts* the parameter (HTTP 200) but `low` did not observably suppress reasoning in a one-shot probe — passed through, not relied on. |
 | Claude Code compat | Text ✅ and agentic tool-use ✅ through LiteLLM's OpenAI→Anthropic translation (verified on GLM-5.2; note: the same translation *crashes* on DeepInfra FP4 — stick with Together) |
 | Anthropic endpoint | Together has **none** (`/v1/messages` → 404). The proxy provides it. |
 

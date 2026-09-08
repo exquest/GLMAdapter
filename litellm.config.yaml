@@ -16,8 +16,40 @@ model_list:
     litellm_params:
       model: together_ai/moonshotai/Kimi-K3   # 1M context (Together catalog)
       api_key: os.environ/TOGETHER_API_KEY    # same Together account as glm-5.2
-      # Same empty-content guard as glm-5.2: room for reasoning tokens.
-      max_tokens: 4096
+      # Same empty-content guard as glm-5.2, plus headroom for whole-corpus
+      # digest drafts (PromptClaw Continuum lane): reasoning + long output.
+      max_tokens: 32768
+
+  - model_name: glm-5.3-flash                 # name clients request
+    litellm_params:
+      model: together_ai/zai-org/GLM-5.3-Flash  # 320B-A18B MoE, native multimodal, 1M context
+      api_key: os.environ/TOGETHER_API_KEY    # same Together account/key
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # Reasoning model (effort low|high|max, default max): same empty-content
+      # guard as glm-5.2, with more headroom — Flash is ~1/10th glm-5.2 price
+      # ($0.15 in / $0.50 out per 1M, 2026-08 catalog) so the budget is cheap.
+      max_tokens: 16384
+
+  - model_name: glm-5.3                       # name clients request
+    litellm_params:
+      model: together_ai/zai-org/GLM-5.3      # 1M context; same Together account/key
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # Reasoning model (verified 2026-09-08: reasoning_content present; effort=low
+      # suppresses it, 28 -> 3 completion tokens). Same price as glm-5.2
+      # ($1.40 in / $4.40 out per 1M, 2026-09 catalog); same empty-content guard.
+      max_tokens: 16384
+
+  - model_name: deepseek-v4-pro               # name clients request
+    litellm_params:
+      model: together_ai/deepseek-ai/DeepSeek-V4-Pro-0813  # 1M context; the 0813 build (not the 512K un-suffixed listing)
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # Reasoning model (verified 2026-09-08: reasoning_content present). Together
+      # ACCEPTS reasoning_effort (200) but low did not observably suppress reasoning
+      # in a one-shot probe -- passed through, not relied on. $1.32 in / $3.96 out
+      # per 1M (2026-09 catalog). New provider family on this proxy.
+      max_tokens: 16384
 
 litellm_settings:
   drop_params: true                           # tolerate client params the model ignores
