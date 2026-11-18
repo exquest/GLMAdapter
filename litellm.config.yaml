@@ -1,4 +1,5 @@
-# GLMAdapter — LiteLLM proxy config for Together AI models (GLM-5.2, Kimi-K3).
+# GLMAdapter — LiteLLM proxy config for Together AI models (GLM, Kimi, DeepSeek,
+# Qwen, MiniMax, Inkling, Muse, GPT-OSS; the README lists every route).
 # One proxy, one key, N models: clients pick by model name.
 # The key is NEVER inlined: api_key uses os.environ/ indirection; run.sh
 # resolves the value from your OS secret store (or .env) at launch.
@@ -7,6 +8,7 @@ model_list:
     litellm_params:
       model: together_ai/zai-org/GLM-5.2      # together_ai/ prefix => Together AI (FP8)
       api_key: os.environ/TOGETHER_API_KEY    # env indirection — never the raw key
+      allowed_openai_params: ["tools", "tool_choice"]  # let tool-call parameters through
       # GLM-5.2 is a reasoning model: it spends completion tokens on
       # reasoning_content BEFORE the answer. Give it room or short replies
       # come back with empty content.
@@ -16,6 +18,7 @@ model_list:
     litellm_params:
       model: together_ai/moonshotai/Kimi-K3   # 1M context (Together catalog)
       api_key: os.environ/TOGETHER_API_KEY    # same Together account as glm-5.2
+      allowed_openai_params: ["tools", "tool_choice"]  # let tool-call parameters through
       # Same empty-content guard as glm-5.2, plus headroom for whole-corpus
       # digest drafts (PromptClaw Continuum lane): reasoning + long output.
       max_tokens: 32768
@@ -50,6 +53,115 @@ model_list:
       # in a one-shot probe -- passed through, not relied on. $1.32 in / $3.96 out
       # per 1M (2026-09 catalog). New provider family on this proxy.
       max_tokens: 16384
+
+  # ---- Together serverless routes added 2026-09-25 (qwen3.7-plus on 2026-10-14) ----
+  # Same empty-content guard as above: max_tokens covers reasoning AND the answer.
+  # Prices are Together list prices per 1M tokens on the date shown; check the
+  # catalog before relying on them. A route costs nothing until a client asks for it.
+
+  - model_name: deepseek-v4.1-flash           # name clients request
+    litellm_params:
+      model: together_ai/deepseek-ai/DeepSeek-V4.1-Flash
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # 1M context; $0.30 in / $1.20 out (2026-09-25). DeepSeek family, the V4.1 flash tier.
+      max_tokens: 16384
+
+  - model_name: deepseek-v4-flash             # name clients request
+    litellm_params:
+      model: together_ai/deepseek-ai/DeepSeek-V4-Flash-0731
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # 1M context; $0.14 in / $0.28 out (2026-09-25). The 0731 V4 flash build:
+      # older than V4.1 Flash, kept for its price.
+      max_tokens: 16384
+
+  - model_name: qwen3.7-plus                  # name clients request
+    litellm_params:
+      model: together_ai/Qwen/Qwen3.7-Plus
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # 1M context; $0.32 in / $1.28 out (2026-10-14). Alibaba's mid tier, between
+      # qwen3.8-flash and qwen3.7-max. Together serves it as a stream only: send
+      # "stream": true.
+      max_tokens: 16384
+
+  - model_name: qwen3.5-9b                    # name clients request
+    litellm_params:
+      model: together_ai/Qwen/Qwen3.5-9B
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # 256K context; $0.17 in / $0.25 out (2026-09-25). Small 9B model (the priced
+      # serverless listing; the -FP8 id is dedicated-endpoint only).
+      max_tokens: 8192
+
+  - model_name: minimax-m3                    # name clients request
+    litellm_params:
+      model: together_ai/MiniMaxAI/MiniMax-M3
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # 512K context; $0.30 in / $1.20 out (2026-09-25). MiniMax family.
+      max_tokens: 16384
+
+  - model_name: inkling                       # name clients request
+    litellm_params:
+      model: together_ai/thinkingmachines/Inkling
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # 512K context; $1.00 in / $4.05 out (2026-09-25). Thinking Machines' Inkling (FP4 serving).
+      max_tokens: 16384
+
+  - model_name: muse-glimmer-30b              # name clients request
+    litellm_params:
+      model: together_ai/meta-models/Muse-Glimmer-30B
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # 128K context; $0.35 in / $1.50 out (2026-09-25). Meta's Muse Glimmer 30B.
+      max_tokens: 8192
+
+  - model_name: gpt-oss-120b                  # name clients request
+    litellm_params:
+      model: together_ai/openai/gpt-oss-120b
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # 128K context; $0.15 in / $0.60 out (2026-09-25). OpenAI's open-weight GPT-OSS 120B,
+      # served by Together.
+      max_tokens: 8192
+
+  - model_name: tev1-4b                       # name clients request
+    litellm_params:
+      model: together_ai/together/Tev1-4B-experimental
+      api_key: os.environ/TOGETHER_API_KEY
+      allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+      # 32K context; $0.042 in / $0 out (2026-09-25). Together's experimental 4B model:
+      # tiny and unproven.
+      max_tokens: 4096
+
+  # ---- The three pricier Qwen tiers: off until you uncomment them and restart ----
+  # - model_name: qwen3.8-2.4t                # name clients request
+  #   litellm_params:
+  #     model: together_ai/Qwen/Qwen3.8-2.4T-A95B
+  #     api_key: os.environ/TOGETHER_API_KEY
+  #     allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+  #     # 1.01M context; $2.00 in / $6.00 out (2026-09-25). Alibaba's Qwen3.8 flagship.
+  #     max_tokens: 16384
+
+  # - model_name: qwen3.8-flash               # name clients request
+  #   litellm_params:
+  #     model: together_ai/Qwen/Qwen3.8-Flash
+  #     api_key: os.environ/TOGETHER_API_KEY
+  #     allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+  #     # 1M context; $0.15 in / $0.47 out (2026-10-14). Qwen3.8 flash tier; Together
+  #     # serves it as a stream only.
+  #     max_tokens: 16384
+
+  # - model_name: qwen3.7-max                 # name clients request
+  #   litellm_params:
+  #     model: together_ai/Qwen/Qwen3.7-Max
+  #     api_key: os.environ/TOGETHER_API_KEY
+  #     allowed_openai_params: ["tools", "tool_choice", "reasoning_effort"]
+  #     # 1M context; $2.50 in / $7.50 out (2026-10-14). Qwen3.7 Max; stream only.
+  #     max_tokens: 16384
 
 litellm_settings:
   drop_params: true                           # tolerate client params the model ignores
