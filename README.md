@@ -10,6 +10,10 @@ GLM-5.2's price), **DeepSeek-V4-Pro-0813** (DeepSeek, 1M context) and **Kimi-K3*
 secret store and never written to disk. One proxy, one key, N models: clients
 pick by model name (`glm-5.2`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4-pro`, `kimi-k3`).
 
+Nine more Together routes were added on 2026-11-18: DeepSeek's two flash tiers,
+Qwen3.7-Plus and Qwen3.5-9B, MiniMax-M3, Inkling, Muse Glimmer 30B, GPT-OSS 120B
+and Tev1-4B. [All routes](#all-routes) lists every name the proxy answers to.
+
 ```
 OpenAI clients (codex, aider, scripts) ──► http://localhost:4000/v1  ─┐
                                                                       ├─► LiteLLM ─► Together AI (glm-5.2 · glm-5.3 · glm-5.3-flash · deepseek-v4-pro · kimi-k3)
@@ -26,6 +30,43 @@ Battle-tested facts baked into this setup:
 | Reasoning models | Spend completion tokens on reasoning **before** the answer — small `max_tokens` returns *empty* content. Config defaults: 4096 (GLM-5.2), 16384 (GLM-5.3, GLM-5.3-Flash, DeepSeek-V4-Pro-0813), 32768 (Kimi-K3). GLM-5.3 and GLM-5.3-Flash honour `reasoning_effort: low\|high\|max` (default max; verified to suppress reasoning at `low`) — allowed through via `allowed_openai_params`. DeepSeek-V4-Pro-0813 *accepts* the parameter (HTTP 200) but `low` did not observably suppress reasoning in a one-shot probe — passed through, not relied on. |
 | Claude Code compat | Text ✅ and agentic tool-use ✅ through LiteLLM's OpenAI→Anthropic translation (verified on GLM-5.2; note: the same translation *crashes* on DeepInfra FP4 — stick with Together) |
 | Anthropic endpoint | Together has **none** (`/v1/messages` → 404). The proxy provides it. |
+
+## All routes
+
+A client picks a model by the name in the first column. A route costs nothing
+until a client asks for it.
+
+| Client asks for | Together model | Context | List price per 1M tokens, in / out (date recorded) |
+|---|---|---|---|
+| `glm-5.2` | `zai-org/GLM-5.2` | 256K | $1.40 / $4.40 (2026-09-08) |
+| `glm-5.3` | `zai-org/GLM-5.3` | 1M | $1.40 / $4.40 (2026-09-08) |
+| `glm-5.3-flash` | `zai-org/GLM-5.3-Flash` | 1M | $0.15 / $0.50 (2026-09-08) |
+| `deepseek-v4-pro` | `deepseek-ai/DeepSeek-V4-Pro-0813` | 1M | $1.32 / $3.96 (2026-09-08) |
+| `kimi-k3` | `moonshotai/Kimi-K3` | 1M | $3 / $15 (2026-09-08) |
+| `deepseek-v4.1-flash` | `deepseek-ai/DeepSeek-V4.1-Flash` | 1M | $0.30 / $1.20 (2026-09-25) |
+| `deepseek-v4-flash` | `deepseek-ai/DeepSeek-V4-Flash-0731` | 1M | $0.14 / $0.28 (2026-09-25) |
+| `qwen3.7-plus` | `Qwen/Qwen3.7-Plus` | 1M | $0.32 / $1.28 (2026-10-14) |
+| `qwen3.5-9b` | `Qwen/Qwen3.5-9B` | 256K | $0.17 / $0.25 (2026-09-25) |
+| `minimax-m3` | `MiniMaxAI/MiniMax-M3` | 512K | $0.30 / $1.20 (2026-09-25) |
+| `inkling` | `thinkingmachines/Inkling` | 512K | $1.00 / $4.05 (2026-09-25) |
+| `muse-glimmer-30b` | `meta-models/Muse-Glimmer-30B` | 128K | $0.35 / $1.50 (2026-09-25) |
+| `gpt-oss-120b` | `openai/gpt-oss-120b` | 128K | $0.15 / $0.60 (2026-09-25) |
+| `tev1-4b` | `together/Tev1-4B-experimental` | 32K | $0.042 / $0 (2026-09-25) |
+
+The prices are what Together listed on the date shown, not a live quote: check
+the catalog before you rely on one. `qwen3.7-plus` is served as a stream only,
+so send `"stream": true`.
+
+Three pricier Qwen tiers (`qwen3.8-2.4t`, `qwen3.8-flash`, `qwen3.7-max`) sit in
+`litellm.config.yaml` commented out. Uncomment one and restart to serve it.
+
+**After you pull a config change, restart the proxy**, or it keeps serving the
+old list: re-run `./install-service.sh` if you use the always-on service, or
+stop `./run.sh` with Ctrl-C and start it again. Then check what is served:
+
+```bash
+curl -s http://localhost:4000/v1/models -H "Authorization: Bearer sk-anything"
+```
 
 ## Prerequisites
 
@@ -131,6 +172,7 @@ systemctl --user restart glmadapter-litellm
 | `TOGETHER_API_KEY not found` | Store the key (see Quickstart step 1); on Linux, `secret-tool` needs an unlocked keyring |
 | Port 4000 busy | `GLM_PORT=4123 ./run.sh` and `export GLM_PORT=4123` before using `glm`/`glm-health` |
 | Claude Code errors mid-tool-use | Make sure the model is Together (`together_ai/…`) — DeepInfra FP4 breaks the OpenAI→Anthropic translation |
+| `Endpoint has no deployments configured for routing` | Together is not serving that model serverless right now; nothing to fix locally. Seen for `minimax-m3` on 2026-11-18, twice a few minutes apart, while seven other routes answered. Use another route and try again later |
 
 ## License
 
