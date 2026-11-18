@@ -172,6 +172,7 @@ systemctl --user restart glmadapter-litellm
 | `TOGETHER_API_KEY not found` | Store the key (see Quickstart step 1); on Linux, `secret-tool` needs an unlocked keyring |
 | Port 4000 busy | `GLM_PORT=4123 ./run.sh` and `export GLM_PORT=4123` before using `glm`/`glm-health` |
 | Claude Code errors mid-tool-use | Make sure the model is Together (`together_ai/…`) — DeepInfra FP4 breaks the OpenAI→Anthropic translation |
+| `Endpoint has no deployments configured for routing` | Together is not serving that model serverless right now; nothing to fix locally. Seen for `minimax-m3` on 2026-11-18, twice a few minutes apart, while seven other routes answered. Use another route and try again later |
 
 ## License
 
